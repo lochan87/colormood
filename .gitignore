@@ -4,4 +4,3 @@ QUICK_START.md
 node_modules/
 .vscode/
 package-lock.json
-package.json
