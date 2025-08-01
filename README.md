@@ -63,7 +63,6 @@ colormood-app/
 └── package.json
 
 ```
----
 
 ## 🎯 How to Use ColorMood
 
@@ -83,3 +82,9 @@ colormood-app/
 - **Rating System**: Help improve recommendations
 
 ---
+
+**🎉 Enjoy exploring your emotions through art and creativity!**
+
+Check it out at [ColorMood](https://colormood-wdnb.onrender.com)
+
+**Happy mood tracking! 🎨✨**
