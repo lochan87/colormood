@@ -56,10 +56,12 @@ class GeminiService {
         {
           "artPrompt": "detailed visual description for abstract art generation",
           "artDescription": "explanation of how the art reflects the mood",
-          "artStyle": "artistic style (e.g., expressionist, surreal, minimalist)",
-          "colorPalette": ["specific", "hex", "colors"]
+          "artStyle": "artistic style (e.g., expressionist, surreal, minimalist, abstract)",
+          "colorPalette": ["#hexcolor1", "#hexcolor2", "#hexcolor3", "#hexcolor4", "#hexcolor5"]
         }
         
+        IMPORTANT: Generate 5-7 distinct hex color codes (format: #RRGGBB) that represent the emotion.
+        Mix warm and cool tones for visual interest. Use vibrant, varied colors, not just single tones.
         Only respond with the JSON object.
       `;
 

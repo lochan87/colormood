@@ -29,22 +29,35 @@ class ArtGenerator {
     const width = this.canvasWidth;
     const height = this.canvasHeight;
 
-    // Background
-    elements.push(`<rect width="${width}" height="${height}" fill="${colors[0] || '#ffffff'}"/>`);
+    // Ensure colors are valid, provide defaults if needed
+    const validColors = this.ensureValidColors(colors);
+    
+    // Normalize intensity and energy to ensure they're numbers
+    const normalizedIntensity = Math.max(1, Math.min(10, intensity || 5));
+    const normalizedEnergy = this.normalizeEnergy(energy);
+
+    // Create gradient definitions
+    const gradientDefs = this.createGradientDefs(validColors);
+
+    // Background - use a lighter version of the first color or white
+    elements.push(`<rect width="${width}" height="${height}" fill="#f5f5f5"/>`);
+    
+    // Add a subtle gradient overlay
+    elements.push(`<rect width="${width}" height="${height}" fill="url(#bgGrad)" opacity="0.3"/>`);
 
     switch (style.toLowerCase()) {
       case 'expressionist':
-        elements.push(...this.generateExpressionistElements(colors, intensity, energy, width, height));
+        elements.push(...this.generateExpressionistElements(validColors, normalizedIntensity, normalizedEnergy, width, height));
         break;
       case 'minimalist':
-        elements.push(...this.generateMinimalistElements(colors, intensity, energy, width, height));
+        elements.push(...this.generateMinimalistElements(validColors, normalizedIntensity, normalizedEnergy, width, height));
         break;
       case 'surreal':
-        elements.push(...this.generateSurrealElements(colors, intensity, energy, width, height));
+        elements.push(...this.generateSurrealElements(validColors, normalizedIntensity, normalizedEnergy, width, height));
         break;
       case 'abstract':
       default:
-        elements.push(...this.generateAbstractElements(colors, intensity, energy, width, height));
+        elements.push(...this.generateAbstractElements(validColors, normalizedIntensity, normalizedEnergy, width, height));
         break;
     }
 
@@ -52,12 +65,18 @@ class ArtGenerator {
       <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <filter id="blur">
-            <feGaussianBlur stdDeviation="${intensity / 2}"/>
+            <feGaussianBlur stdDeviation="${normalizedIntensity / 2}"/>
           </filter>
           <filter id="roughPaper">
             <feTurbulence baseFrequency="0.04" numOctaves="5" result="noise"/>
             <feDisplacementMap in="SourceGraphic" in2="noise" scale="1"/>
           </filter>
+          <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${validColors[0]};stop-opacity:1" />
+            <stop offset="50%" style="stop-color:${validColors[Math.floor(validColors.length / 2)]};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${validColors[validColors.length - 1]};stop-opacity:1" />
+          </linearGradient>
+          ${gradientDefs}
         </defs>
         ${elements.join('\n        ')}
       </svg>
@@ -66,25 +85,30 @@ class ArtGenerator {
 
   generateExpressionistElements(colors, intensity, energy, width, height) {
     const elements = [];
-    const numShapes = Math.floor(intensity * 3 + energy * 2);
+    const numShapes = Math.floor(intensity * 8 + energy * 5 + 15);
 
     for (let i = 0; i < numShapes; i++) {
       const color = colors[i % colors.length];
-      const opacity = Math.random() * 0.7 + 0.3;
+      const opacity = Math.random() * 0.5 + 0.4;
       const x = Math.random() * width;
       const y = Math.random() * height;
-      const size = Math.random() * 200 + 50;
+      const size = Math.random() * 250 + 80;
 
-      if (Math.random() > 0.5) {
+      const shapeChoice = Math.random();
+      if (shapeChoice > 0.6) {
         // Irregular shapes
-        const points = this.generateIrregularPolygon(x, y, size, 6);
+        const points = this.generateIrregularPolygon(x, y, size, 5 + Math.floor(Math.random() * 4));
         elements.push(`<polygon points="${points}" fill="${color}" opacity="${opacity}" filter="url(#roughPaper)"/>`);
-      } else {
+      } else if (shapeChoice > 0.3) {
         // Bold brushstrokes
-        const strokeWidth = intensity * 10 + 5;
-        const x2 = x + Math.random() * 200 - 100;
-        const y2 = y + Math.random() * 200 - 100;
+        const strokeWidth = intensity * 15 + 8;
+        const x2 = x + Math.random() * 300 - 150;
+        const y2 = y + Math.random() * 300 - 150;
         elements.push(`<line x1="${x}" y1="${y}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${strokeWidth}" opacity="${opacity}" stroke-linecap="round"/>`);
+      } else {
+        // Splatter effects
+        const splatterSize = Math.random() * 60 + 20;
+        elements.push(`<circle cx="${x}" cy="${y}" r="${splatterSize}" fill="${color}" opacity="${opacity}" filter="url(#blur)"/>`);
       }
     }
 
@@ -93,11 +117,11 @@ class ArtGenerator {
 
   generateMinimalistElements(colors, intensity, energy, width, height) {
     const elements = [];
-    const numElements = Math.min(intensity + 2, 5);
+    const numElements = Math.floor(intensity * 1.5 + 8);
 
     for (let i = 0; i < numElements; i++) {
       const color = colors[i % colors.length];
-      const x = (width / (numElements + 1)) * (i + 1);
+      const x = Math.random() * width * 0.8 + width * 0.1;
       const y = height / 2 + Math.sin(i * 0.5) * 100;
 
       if (i % 2 === 0) {
@@ -115,26 +139,30 @@ class ArtGenerator {
 
   generateSurrealElements(colors, intensity, energy, width, height) {
     const elements = [];
-    const numElements = Math.floor(intensity * 2 + 3);
+    const numElements = Math.floor(intensity * 5 + energy * 3 + 12);
 
     for (let i = 0; i < numElements; i++) {
       const color = colors[i % colors.length];
       const x = Math.random() * width;
       const y = Math.random() * height;
 
-      if (Math.random() > 0.6) {
+      const choice = Math.random();
+      if (choice > 0.7) {
         // Floating organic shapes
-        const path = this.generateOrganicPath(x, y, 100 + intensity * 20);
-        elements.push(`<path d="${path}" fill="${color}" opacity="0.6" filter="url(#blur)"/>`);
-      } else if (Math.random() > 0.3) {
+        const path = this.generateOrganicPath(x, y, 100 + intensity * 30);
+        elements.push(`<path d="${path}" fill="${color}" opacity="${Math.random() * 0.4 + 0.5}" filter="url(#blur)"/>`);
+      } else if (choice > 0.4) {
         // Disconnected geometric forms
-        const size = 30 + Math.random() * 100;
+        const size = 40 + Math.random() * 150;
         const rotation = Math.random() * 360;
-        elements.push(`<polygon points="${this.generateIrregularPolygon(x, y, size, 3 + Math.floor(Math.random() * 5))}" fill="${color}" opacity="0.7" transform="rotate(${rotation} ${x} ${y})"/>`);
-      } else {
+        elements.push(`<polygon points="${this.generateIrregularPolygon(x, y, size, 3 + Math.floor(Math.random() * 6))}" fill="${color}" opacity="${Math.random() * 0.3 + 0.6}" transform="rotate(${rotation} ${x} ${y})"/>`);
+      } else if (choice > 0.2) {
         // Flowing lines
-        const path = this.generateFlowingLine(x, y, energy * 50 + 100);
-        elements.push(`<path d="${path}" stroke="${color}" stroke-width="${intensity + 2}" fill="none" opacity="0.8"/>`);
+        const path = this.generateFlowingLine(x, y, energy * 70 + 120);
+        elements.push(`<path d="${path}" stroke="${color}" stroke-width="${intensity * 2 + 3}" fill="none" opacity="0.8"/>`);
+      } else {
+        // Gradient circles
+        elements.push(`<circle cx="${x}" cy="${y}" r="${Math.random() * 100 + 40}" fill="${color}" opacity="${Math.random() * 0.4 + 0.4}"/>`);
       }
     }
 
@@ -143,29 +171,56 @@ class ArtGenerator {
 
   generateAbstractElements(colors, intensity, energy, width, height) {
     const elements = [];
-    const numElements = Math.floor(intensity * 4 + energy * 2);
+    const numElements = Math.floor(intensity * 8 + energy * 5 + 25);
+    
+    console.log(`Generating ${numElements} abstract elements with ${colors.length} colors`);
 
     for (let i = 0; i < numElements; i++) {
-      const color = colors[i % colors.length];
+      const colorIndex = i % colors.length;
+      const color = colors[colorIndex];
       const x = Math.random() * width;
       const y = Math.random() * height;
-      const size = Math.random() * 150 + 50;
+      const size = Math.random() * 200 + 60;
+      
+      // Use gradients more frequently and ensure valid gradient index
+      const useGradient = Math.random() > 0.5;
+      const gradIndex = Math.min(colorIndex, Math.min(colors.length - 2, 3));
+      const fillColor = useGradient && colors.length > 1 
+        ? `url(#${Math.random() > 0.5 ? 'grad' : 'radgrad'}${gradIndex})` 
+        : color;
 
       const shapeType = Math.random();
       
-      if (shapeType > 0.7) {
-        // Circles
-        elements.push(`<circle cx="${x}" cy="${y}" r="${size/2}" fill="${color}" opacity="${Math.random() * 0.6 + 0.4}"/>`);
-      } else if (shapeType > 0.4) {
-        // Rectangles
+      if (shapeType > 0.75) {
+        // Circles with varying sizes
+        elements.push(`<circle cx="${x}" cy="${y}" r="${size/2}" fill="${fillColor}" opacity="${Math.random() * 0.4 + 0.5}"/>`);
+      } else if (shapeType > 0.5) {
+        // Rectangles and squares
         const rotation = Math.random() * 360;
-        elements.push(`<rect x="${x - size/2}" y="${y - size/2}" width="${size}" height="${size * 0.6}" fill="${color}" opacity="${Math.random() * 0.6 + 0.4}" transform="rotate(${rotation} ${x} ${y})"/>`);
-      } else {
-        // Triangles and polygons
-        const sides = 3 + Math.floor(Math.random() * 4);
+        const width_rect = size * (0.5 + Math.random() * 0.8);
+        const height_rect = size * (0.5 + Math.random() * 0.8);
+        elements.push(`<rect x="${x - width_rect/2}" y="${y - height_rect/2}" width="${width_rect}" height="${height_rect}" fill="${fillColor}" opacity="${Math.random() * 0.4 + 0.5}" transform="rotate(${rotation} ${x} ${y})"/>`);
+      } else if (shapeType > 0.25) {
+        // Polygons with varying sides
+        const sides = 3 + Math.floor(Math.random() * 6);
         const points = this.generateRegularPolygon(x, y, size/2, sides);
-        elements.push(`<polygon points="${points}" fill="${color}" opacity="${Math.random() * 0.6 + 0.4}"/>`);
+        const rotation = Math.random() * 360;
+        elements.push(`<polygon points="${points}" fill="${fillColor}" opacity="${Math.random() * 0.4 + 0.5}" transform="rotate(${rotation} ${x} ${y})"/>`);
+      } else {
+        // Ellipses
+        const rotation = Math.random() * 180;
+        elements.push(`<ellipse cx="${x}" cy="${y}" rx="${size * 0.7}" ry="${size * 0.4}" fill="${fillColor}" opacity="${Math.random() * 0.4 + 0.5}" transform="rotate(${rotation} ${x} ${y})"/>`);
       }
+    }
+
+    // Add some connecting curves for visual flow using all colors
+    const numCurves = Math.floor(energy * 2 + 5);
+    for (let i = 0; i < numCurves; i++) {
+      const startX = Math.random() * width;
+      const startY = Math.random() * height;
+      const path = this.generateFlowingLine(startX, startY, 150 + energy * 30);
+      const color = colors[i % colors.length];
+      elements.push(`<path d="${path}" stroke="${color}" stroke-width="${3 + intensity}" fill="none" opacity="0.7"/>`);
     }
 
     return elements;
@@ -238,6 +293,74 @@ class ArtGenerator {
     }
     
     return path;
+  }
+
+  ensureValidColors(colors) {
+    // Default vibrant color palette if colors are invalid or missing
+    const defaultColors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE'];
+    
+    if (!colors || !Array.isArray(colors) || colors.length === 0) {
+      console.log('No colors provided, using defaults');
+      return defaultColors;
+    }
+
+    // Filter valid hex colors and ensure we have at least 5
+    const validColors = colors.filter(color => {
+      return color && typeof color === 'string' && /^#[0-9A-F]{6}$/i.test(color);
+    });
+
+    console.log(`Input colors: ${colors.length}, Valid colors: ${validColors.length}`, validColors);
+
+    // If we have fewer than 5 valid colors, supplement with defaults
+    if (validColors.length < 5) {
+      const supplemented = [...validColors, ...defaultColors].slice(0, 7);
+      console.log('Supplemented colors:', supplemented);
+      return supplemented;
+    }
+
+    return validColors;
+  }
+
+  normalizeEnergy(energy) {
+    const energyMap = {
+      'very-low': 2,
+      'low': 4,
+      'moderate': 6,
+      'high': 8,
+      'very-high': 10
+    };
+    
+    if (typeof energy === 'string') {
+      return energyMap[energy.toLowerCase()] || 6;
+    }
+    
+    return Math.max(1, Math.min(10, energy || 6));
+  }
+
+  createGradientDefs(colors) {
+    let gradients = '';
+    
+    // Create linear gradients
+    for (let i = 0; i < Math.min(colors.length - 1, 4); i++) {
+      gradients += `
+        <linearGradient id="grad${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:${colors[i]};stop-opacity:0.8" />
+          <stop offset="100%" style="stop-color:${colors[i + 1]};stop-opacity:0.6" />
+        </linearGradient>
+      `;
+    }
+
+    // Create radial gradients
+    for (let i = 0; i < Math.min(colors.length - 1, 4); i++) {
+      gradients += `
+        <radialGradient id="radgrad${i}" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" style="stop-color:${colors[i]};stop-opacity:0.9" />
+          <stop offset="100%" style="stop-color:${colors[i + 1]};stop-opacity:0.3" />
+        </radialGradient>
+      `;
+    }
+
+    return gradients;
   }
 
   hexToRgb(hex) {
