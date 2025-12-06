@@ -205,6 +205,44 @@ router.post('/:contentId/rate-selfcare', async (req, res) => {
   }
 });
 
+// Rate overall experience
+router.post('/:contentId/rate-overall', async (req, res) => {
+  try {
+    const { contentId } = req.params;
+    const { sessionId, rating } = req.body;
+
+    if (!sessionId || !rating) {
+      return res.status(400).json({ error: 'Session ID and rating are required' });
+    }
+
+    const generatedContent = await GeneratedContent.findOne({
+      _id: contentId,
+      sessionId
+    });
+
+    if (!generatedContent) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    generatedContent.userFeedback = generatedContent.userFeedback || {};
+    generatedContent.userFeedback.overallRating = rating;
+    await generatedContent.save({ validateModifiedOnly: true });
+
+    res.json({
+      success: true,
+      message: 'Overall rating saved successfully',
+      rating
+    });
+
+  } catch (error) {
+    console.error('Error saving overall rating:', error);
+    res.status(500).json({ 
+      error: 'Failed to save rating',
+      message: error.message 
+    });
+  }
+});
+
 // Get all wellness content for a mood entry
 router.get('/:moodEntryId', async (req, res) => {
   try {

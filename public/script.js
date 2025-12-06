@@ -65,14 +65,6 @@ class ColorMoodApp {
         document.querySelectorAll('.modal-close').forEach(closeBtn => {
             closeBtn.addEventListener('click', this.closeModal);
         });
-
-        // Gallery item clicks
-        document.addEventListener('click', (e) => {
-            const galleryItem = e.target.closest('.gallery-item');
-            if (galleryItem) {
-                this.showArtModal(galleryItem.dataset.id);
-            }
-        });
     }
 
     setupTabs() {
@@ -536,6 +528,8 @@ class ColorMoodApp {
                 endpoint = `/api/wellness/${this.currentGeneratedContent.id}/rate-affirmations`;
             } else if (type === 'selfcare') {
                 endpoint = `/api/wellness/${this.currentGeneratedContent.id}/rate-selfcare`;
+            } else if (type === 'overall') {
+                endpoint = `/api/wellness/${this.currentGeneratedContent.id}/rate-overall`;
             }
 
             await this.apiRequest(endpoint, 'POST', {
@@ -688,6 +682,23 @@ class ColorMoodApp {
                     <span class="stat-number">${this.capitalizeFirst(stats.mostCommonMood || 'N/A')}</span>
                     <span class="stat-label">Most Common Mood</span>
                 </div>
+                ${stats.topSecondaryEmotion ? `
+                    <div class="stat-card">
+                        <span class="stat-number">${this.capitalizeFirst(stats.topSecondaryEmotion)}</span>
+                        <span class="stat-label">Top Secondary Emotion</span>
+                    </div>
+                ` : ''}
+                ${stats.wellnessScore !== undefined ? `
+                    <div class="stat-card wellness-score">
+                        <span class="stat-number" style="color: ${this.getWellnessColor(stats.wellnessScore)}">${stats.wellnessScore}</span>
+                        <span class="stat-label">Wellness Score</span>
+                        <div class="wellness-indicator">
+                            <div class="wellness-bar">
+                                <div class="wellness-fill" style="width: ${stats.wellnessScore}%; background: ${this.getWellnessColor(stats.wellnessScore)};"></div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
 
             <div class="mood-distribution">
@@ -706,6 +717,46 @@ class ColorMoodApp {
                 }).join('')}
             </div>
 
+            ${stats.energyTrends && stats.energyTrends.length > 0 ? `
+                <div class="mood-distribution">
+                    <h3>Energy Level Trends</h3>
+                    <p class="section-subtitle" style="margin-bottom: var(--spacing-lg); color: var(--gray-600);">How your energy levels have been distributed</p>
+                    ${stats.energyTrends.map(energy => {
+                        const percentage = Math.round((energy.count / stats.totalEntries) * 100);
+                        const energyLabels = {
+                            'very-low': 'Very Low',
+                            'low': 'Low',
+                            'moderate': 'Moderate',
+                            'high': 'High',
+                            'very-high': 'Very High'
+                        };
+                        const energyIcons = {
+                            'very-low': '🔋',
+                            'low': '🔋',
+                            'moderate': '⚡',
+                            'high': '⚡⚡',
+                            'very-high': '⚡⚡⚡'
+                        };
+                        const energyColors = {
+                            'very-low': '#EF4444',
+                            'low': '#F59E0B',
+                            'moderate': '#10B981',
+                            'high': '#3B82F6',
+                            'very-high': '#8B5CF6'
+                        };
+                        return `
+                            <div class="distribution-item">
+                                <span>${energyIcons[energy._id]} ${energyLabels[energy._id]}</span>
+                                <div class="distribution-bar">
+                                    <div class="distribution-fill" style="width: ${percentage}%; background: ${energyColors[energy._id]};"></div>
+                                </div>
+                                <span>${energy.count} (${percentage}%)</span>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            ` : ''}
+
             ${stats.recentMoods.length > 0 ? `
                 <div class="mood-distribution">
                     <h3>Recent Mood Trend</h3>
@@ -720,32 +771,100 @@ class ColorMoodApp {
                     </div>
                 </div>
             ` : ''}
+
+            ${stats.ratings ? `
+                <div class="mood-distribution">
+                    <h3>Your Feedback Ratings</h3>
+                    <div class="ratings-stats">
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-palette"></i>
+                                <span>Art</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.art)}
+                                <span class="rating-stat-number">${stats.ratings.art > 0 ? stats.ratings.art.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-music"></i>
+                                <span>Music</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.music)}
+                                <span class="rating-stat-number">${stats.ratings.music > 0 ? stats.ratings.music.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-pen-fancy"></i>
+                                <span>Prompts</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.prompts)}
+                                <span class="rating-stat-number">${stats.ratings.prompts > 0 ? stats.ratings.prompts.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-heart"></i>
+                                <span>Affirmations</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.affirmations)}
+                                <span class="rating-stat-number">${stats.ratings.affirmations > 0 ? stats.ratings.affirmations.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-spa"></i>
+                                <span>Self-Care</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.selfCare)}
+                                <span class="rating-stat-number">${stats.ratings.selfCare > 0 ? stats.ratings.selfCare.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                        <div class="rating-stat-item">
+                            <div class="rating-stat-label">
+                                <i class="fas fa-star"></i>
+                                <span>Overall Experience</span>
+                            </div>
+                            <div class="rating-stat-stars">
+                                ${this.renderStars(stats.ratings.overall)}
+                                <span class="rating-stat-number">${stats.ratings.overall > 0 ? stats.ratings.overall.toFixed(1) : '0.0'}/5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ` : ''}
         `;
     }
 
-    // === MODAL HANDLING ===
-    async showArtModal(artId) {
-        const modal = document.getElementById('artModal');
-        const modalContent = document.getElementById('modalArtContent');
+    renderStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        let stars = '';
         
-        try {
-            // This would require additional API endpoint to get full art details
-            // For now, show a placeholder
-            modalContent.innerHTML = `
-                <h3>Artwork Details</h3>
-                <p>Loading artwork details...</p>
-            `;
-            
-            modal.classList.add('show');
-        } catch (error) {
-            this.showToast('Failed to load artwork details', 'error');
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars += '<i class="fas fa-star active"></i>';
+            } else if (i === fullStars && hasHalfStar) {
+                stars += '<i class="fas fa-star-half-alt active"></i>';
+            } else {
+                stars += '<i class="fas fa-star"></i>';
+            }
         }
+        
+        return stars;
     }
 
-    closeModal() {
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.classList.remove('show');
-        });
+    getWellnessColor(score) {
+        if (score >= 80) return '#10B981'; // Green - Excellent
+        if (score >= 60) return '#3B82F6'; // Blue - Good
+        if (score >= 40) return '#F59E0B'; // Orange - Fair
+        return '#EF4444'; // Red - Needs Attention
     }
 
     // === PAGINATION ===

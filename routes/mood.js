@@ -130,6 +130,70 @@ router.get('/stats/:sessionId', async (req, res) => {
     // Calculate mood diversity
     const uniqueEmotions = await MoodEntry.distinct('primaryEmotion', { sessionId });
     
+    // Get top secondary emotions
+    const secondaryEmotionsData = await MoodEntry.aggregate([
+      { $match: { sessionId } },
+      { $unwind: '$secondaryEmotions' },
+      {
+        $group: {
+          _id: '$secondaryEmotions',
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } },
+      { $limit: 1 }
+    ]);
+    
+    const topSecondaryEmotion = secondaryEmotionsData[0]?._id || null;
+    
+    // Get average ratings from GeneratedContent (need this before wellness score)
+    const GeneratedContent = require('../models/GeneratedContent');
+    const ratingsData = await GeneratedContent.aggregate([
+      { $match: { sessionId } },
+      {
+        $group: {
+          _id: null,
+          avgArtRating: { $avg: '$userFeedback.artRating' },
+          avgMusicRating: { $avg: '$userFeedback.musicRating' },
+          avgPromptsRating: { $avg: '$userFeedback.promptsRating' },
+          avgAffirmationsRating: { $avg: '$userFeedback.affirmationsRating' },
+          avgSelfCareRating: { $avg: '$userFeedback.selfCareRating' },
+          avgOverallRating: { $avg: '$userFeedback.overallRating' },
+          totalRatings: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const ratings = ratingsData[0] || {
+      avgArtRating: 0,
+      avgMusicRating: 0,
+      avgPromptsRating: 0,
+      avgAffirmationsRating: 0,
+      avgSelfCareRating: 0,
+      avgOverallRating: 0,
+      totalRatings: 0
+    };
+    
+    // Calculate wellness score (0-100)
+    // Factors: mood diversity (30%), balanced intensity (30%), engagement (20%), positive ratings (20%)
+    const totalEntries = await MoodEntry.countDocuments({ sessionId });
+    const diversityScore = Math.min((uniqueEmotions.length / 10) * 30, 30); // Max 10 unique emotions
+    const avgIntensity = moodDistribution.reduce((sum, mood) => sum + mood.avgIntensity, 0) / moodDistribution.length || 0;
+    const intensityScore = (1 - Math.abs(avgIntensity - 5.5) / 5.5) * 30; // Closer to 5.5 is better
+    const engagementScore = Math.min((totalEntries / 30) * 20, 20); // Max 30 entries
+    
+    const avgRating = (
+      (ratings.avgArtRating || 0) + 
+      (ratings.avgMusicRating || 0) + 
+      (ratings.avgPromptsRating || 0) + 
+      (ratings.avgAffirmationsRating || 0) + 
+      (ratings.avgSelfCareRating || 0) + 
+      (ratings.avgOverallRating || 0)
+    ) / 6;
+    const ratingScore = (avgRating / 5) * 20;
+    
+    const wellnessScore = Math.round(diversityScore + intensityScore + engagementScore + ratingScore);
+
     res.json({
       success: true,
       stats: {
@@ -139,7 +203,17 @@ router.get('/stats/:sessionId', async (req, res) => {
         recentMoods: recentMoods.reverse(),
         moodDiversity: uniqueEmotions.length,
         mostCommonMood: moodDistribution[0]?._id || null,
-        averageIntensity: moodDistribution.reduce((sum, mood) => sum + mood.avgIntensity, 0) / moodDistribution.length || 0
+        topSecondaryEmotion: topSecondaryEmotion,
+        wellnessScore: wellnessScore,
+        averageIntensity: moodDistribution.reduce((sum, mood) => sum + mood.avgIntensity, 0) / moodDistribution.length || 0,
+        ratings: {
+          art: ratings.avgArtRating || 0,
+          music: ratings.avgMusicRating || 0,
+          prompts: ratings.avgPromptsRating || 0,
+          affirmations: ratings.avgAffirmationsRating || 0,
+          selfCare: ratings.avgSelfCareRating || 0,
+          overall: ratings.avgOverallRating || 0
+        }
       }
     });
 

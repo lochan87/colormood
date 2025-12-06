@@ -172,8 +172,6 @@ class ArtGenerator {
   generateAbstractElements(colors, intensity, energy, width, height) {
     const elements = [];
     const numElements = Math.floor(intensity * 8 + energy * 5 + 25);
-    
-    console.log(`Generating ${numElements} abstract elements with ${colors.length} colors`);
 
     for (let i = 0; i < numElements; i++) {
       const colorIndex = i % colors.length;
@@ -308,8 +306,6 @@ class ArtGenerator {
     const validColors = colors.filter(color => {
       return color && typeof color === 'string' && /^#[0-9A-F]{6}$/i.test(color);
     });
-
-    console.log(`Input colors: ${colors.length}, Valid colors: ${validColors.length}`, validColors);
 
     // If we have fewer than 5 valid colors, supplement with defaults
     if (validColors.length < 5) {

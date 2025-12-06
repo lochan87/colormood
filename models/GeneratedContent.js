@@ -89,6 +89,11 @@ const generatedContentSchema = new mongoose.Schema({
       min: 1,
       max: 5
     },
+    overallRating: {
+      type: Number,
+      min: 1,
+      max: 5
+    },
     comments: String
   },
   createdAt: {
