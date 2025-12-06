@@ -12,15 +12,15 @@ const generatedContentSchema = new mongoose.Schema({
   },
   artPrompt: {
     type: String,
-    required: true
+    required: false
   },
   artDescription: {
     type: String,
-    required: true
+    required: false
   },
   artStyle: {
     type: String,
-    required: true
+    required: false
   },
   colorPalette: [String],
   musicPlaylist: [{

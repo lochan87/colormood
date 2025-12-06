@@ -225,11 +225,6 @@ class ColorMoodApp {
         
         artContainer.innerHTML = art.svg;
         
-        // Add click event to open fullscreen
-        artContainer.addEventListener('click', () => {
-            this.openArtModal(art);
-        });
-        
         artDescription.innerHTML = `
             <h4>Art Interpretation</h4>
             <p>${art.description}</p>
@@ -239,7 +234,7 @@ class ColorMoodApp {
             </div>
         `;
         
-        // Store current art for modal
+        // Store current art for download
         this.currentArt = art;
     }
 
@@ -393,8 +388,13 @@ class ColorMoodApp {
         const affirmationsContent = document.getElementById('affirmationsContent');
         const quoteContent = document.getElementById('quoteContent');
         
+        if (!affirmationsContent || !quoteContent) {
+            console.error('Affirmation elements not found');
+            return;
+        }
+        
         if (!affirmations || affirmations.length === 0) {
-            affirmationsContent.innerHTML = '<p class="text-muted">No affirmations available.</p>';
+            affirmationsContent.innerHTML = '<p class="text-muted">Generating affirmations...</p>';
         } else {
             affirmationsContent.innerHTML = affirmations.map(affirmation => `
                 <div class="affirmation-item">
@@ -607,23 +607,6 @@ class ColorMoodApp {
                 </div>
             </div>
         `).join('');
-        
-        // Add click handlers to gallery items
-        document.querySelectorAll('.gallery-art-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                const galleryItem = e.target.closest('.gallery-item');
-                if (galleryItem) {
-                    const artData = JSON.parse(galleryItem.dataset.art.replace(/&apos;/g, "'"));
-                    const art = {
-                        svg: artData.thumbnail,
-                        style: artData.style || 'Abstract',
-                        description: artData.description || 'A unique mood-based artwork',
-                        colorPalette: artData.colorPalette || []
-                    };
-                    this.openArtModal(art);
-                }
-            });
-        });
 
         this.displayPagination(pagination, 'galleryPagination', (page) => this.loadGallery(page));
     }
@@ -901,101 +884,6 @@ class ColorMoodApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
-    }
-
-    // === ART MODAL (FULLSCREEN) ===
-    openArtModal(art) {
-        const modal = document.getElementById('artModal');
-        const modalArtContent = document.getElementById('modalArtContent');
-        const modalArtInfo = document.getElementById('modalArtInfo');
-        
-        // Set modal content
-        modalArtContent.innerHTML = art.svg;
-        modalArtInfo.innerHTML = `
-            <h3>${this.capitalizeFirst(art.style)} Art</h3>
-            <p>${art.description}</p>
-        `;
-        
-        // Show modal
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        
-        // Store current art for download
-        this.currentModalArt = art;
-        
-        // Close on ESC key
-        this.escKeyHandler = (e) => {
-            if (e.key === 'Escape') {
-                this.closeArtModal();
-            }
-        };
-        document.addEventListener('keydown', this.escKeyHandler);
-        
-        // Close on background click
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.closeArtModal();
-            }
-        });
-    }
-
-    closeArtModal() {
-        const modal = document.getElementById('artModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-        
-        // Remove ESC key handler
-        if (this.escKeyHandler) {
-            document.removeEventListener('keydown', this.escKeyHandler);
-            this.escKeyHandler = null;
-        }
-    }
-
-    downloadModalArt() {
-        if (!this.currentModalArt) {
-            this.showToast('No art to download', 'warning');
-            return;
-        }
-        
-        try {
-            const svg = document.querySelector('#modalArtContent svg');
-            if (!svg) {
-                throw new Error('Art not found');
-            }
-
-            const svgData = new XMLSerializer().serializeToString(svg);
-            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const svgUrl = URL.createObjectURL(svgBlob);
-
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-
-            img.onload = () => {
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(img, 0, 0);
-
-                canvas.toBlob((blob) => {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = `colormood-art-${Date.now()}.png`;
-                    link.href = url;
-                    link.click();
-                    URL.revokeObjectURL(url);
-                    this.showToast('Art downloaded successfully!', 'success');
-                });
-
-                URL.revokeObjectURL(svgUrl);
-            };
-
-            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
-        } catch (error) {
-            console.error('Error downloading art:', error);
-            this.showToast('Failed to download art', 'error');
-        }
     }
 }
 

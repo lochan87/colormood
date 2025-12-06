@@ -42,21 +42,15 @@ router.post('/affirmations', async (req, res) => {
     if (generatedContent) {
       generatedContent.affirmations = affirmationsData.affirmations;
       generatedContent.inspirationalQuote = affirmationsData.inspirationalQuote;
-      await generatedContent.save();
+      await generatedContent.save({ validateModifiedOnly: true });
     } else {
       generatedContent = new GeneratedContent({
         sessionId,
         moodEntryId,
         affirmations: affirmationsData.affirmations,
-        inspirationalQuote: affirmationsData.inspirationalQuote,
-        artPrompt: '',
-        artDescription: '',
-        artStyle: '',
-        colorPalette: [],
-        musicPlaylist: [],
-        journalingPrompts: []
+        inspirationalQuote: affirmationsData.inspirationalQuote
       });
-      await generatedContent.save();
+      await generatedContent.save({ validateModifiedOnly: true });
     }
 
     res.json({
@@ -111,20 +105,14 @@ router.post('/self-care', async (req, res) => {
 
     if (generatedContent) {
       generatedContent.selfCareActivities = selfCareData.activities;
-      await generatedContent.save();
+      await generatedContent.save({ validateModifiedOnly: true });
     } else {
       generatedContent = new GeneratedContent({
         sessionId,
         moodEntryId,
-        selfCareActivities: selfCareData.activities,
-        artPrompt: '',
-        artDescription: '',
-        artStyle: '',
-        colorPalette: [],
-        musicPlaylist: [],
-        journalingPrompts: []
+        selfCareActivities: selfCareData.activities
       });
-      await generatedContent.save();
+      await generatedContent.save({ validateModifiedOnly: true });
     }
 
     res.json({
