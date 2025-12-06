@@ -4,11 +4,22 @@ A mental wellness app that combines generative AI with creativity to help users 
 
 ## Features
 
-- **Mood Analysis**: Describe your current emotional state
-- **AI Art Generation**: Create abstract art based on your mood using Gemini AI
-- **Music Playlist**: Get curated music recommendations that match your emotional state
+- **Mood Analysis**: Describe your current emotional state and get AI-powered insights
+- **AI Art Generation**: Create unique abstract art based on your mood using Gemini AI
+- **Music Playlist**: Get curated music recommendations that match your emotional state (powered by Spotify API)
 - **Journaling Prompts**: Receive personalized prompts for emotional reflection
+- **Daily Affirmations**: Get uplifting affirmations tailored to your current mood
+- **Self-Care Toolkit**: Receive personalized self-care activity suggestions based on your mood and energy levels
 - **Progress Tracking**: Log and track your emotional journey over time
+- **Art Gallery**: View all your mood-based artwork in one place
+- **Comprehensive Statistics**: 
+  - Mood distribution and trends
+  - Energy level tracking
+  - Top secondary emotions
+  - Wellness score (0-100)
+  - User feedback ratings
+  - Recent mood timeline
+- **Rating System**: Provide feedback on Art, Music, Prompts, Affirmations, Self-Care, and Overall Experience
 
 ## Tech Stack
 
@@ -53,7 +64,8 @@ colormood-app/
 ├── routes/
 │   ├── mood.js
 │   ├── art.js
-│   └── music.js
+│   ├── music.js
+│   └── wellness.js
 ├── services/
 │   ├── geminiService.js
 │   ├── musicService.js
@@ -72,14 +84,23 @@ colormood-app/
 - Example: "I'm feeling overwhelmed with work stress but excited about my weekend plans"
 
 ### 2. Get Your Personalized Content
-- **AI Art**: Unique abstract art reflecting your emotional state
-- **Music Playlist**: Songs that match your mood and energy
-- **Journaling Prompts**: Thoughtful questions for reflection
+- **AI Art**: Unique abstract art reflecting your emotional state with 30-60+ visual elements
+- **Music Playlist**: Songs that match your mood and energy with Spotify integration
+- **Journaling Prompts**: Thoughtful questions for reflection and personal growth
+- **Daily Affirmations**: Personalized positive affirmations and inspirational quotes
+- **Self-Care Activities**: Tailored suggestions for physical, creative, social, relaxation, and mindfulness activities
 
 ### 3. Track Your Journey
 - **Gallery**: View all your generated artwork
-- **Statistics**: See patterns in your emotional journey
-- **Rating System**: Help improve recommendations
+- **Statistics Dashboard**: 
+  - Total mood entries and unique emotions tracked
+  - Average emotional intensity
+  - Most common mood and top secondary emotion
+  - Wellness score based on mood diversity, intensity balance, engagement, and ratings
+  - Energy level distribution trends
+  - Recent mood timeline
+  - Your feedback ratings across all features
+- **Rating System**: Rate your experience with all features to help improve recommendations
 
 ---
 
