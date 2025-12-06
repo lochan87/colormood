@@ -160,6 +160,36 @@
                         </div>
                     </div>
 
+                    <!-- Row 4: Affirmations & Quote (Full Width) -->
+                    <div class="results-row-full">
+                        <div class="result-card affirmations-section">
+                            <h3 class="card-title">
+                                <i class="fas fa-heart"></i>
+                                Daily Affirmations
+                            </h3>
+                            <div id="affirmationsContent" class="affirmations-content">
+                                <!-- Affirmations will be inserted here -->
+                            </div>
+                            <div id="quoteContent" class="quote-content">
+                                <!-- Inspirational quote will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Self-Care Toolkit (Full Width) -->
+                    <div class="results-row-full">
+                        <div class="result-card selfcare-toolkit">
+                            <h3 class="card-title">
+                                <i class="fas fa-spa"></i>
+                                Self-Care Toolkit
+                            </h3>
+                            <p class="section-subtitle">Try one of these activities to support your well-being</p>
+                            <div id="selfCareContent" class="selfcare-content">
+                                <!-- Self-care activities will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Feedback Section -->
                     <div class="feedback-section">
                         <h3 class="section-title">How did we do?</h3>
@@ -286,10 +316,16 @@
     </main>
 
     <!-- Modals -->
-    <div id="artModal" class="modal">
+    <div id="artModal" class="art-fullscreen-modal">
+        <button class="modal-close" onclick="app.closeArtModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="modal-download" onclick="app.downloadModalArt()" title="Download">
+            <i class="fas fa-download"></i>
+        </button>
         <div class="modal-content">
-            <span class="modal-close">&times;</span>
-            <div id="modalArtContent"></div>
+            <div id="modalArtContent" class="modal-art-container"></div>
+            <div id="modalArtInfo" class="modal-art-info"></div>
         </div>
     </div>
 

@@ -42,6 +42,27 @@ const generatedContentSchema = new mongoose.Schema({
       enum: ['easy', 'medium', 'deep']
     }
   }],
+  affirmations: [{
+    text: String,
+    tone: {
+      type: String,
+      enum: ['calming', 'energizing', 'grounding', 'uplifting']
+    }
+  }],
+  inspirationalQuote: {
+    text: String,
+    author: String
+  },
+  selfCareActivities: [{
+    title: String,
+    description: String,
+    duration: String,
+    category: {
+      type: String,
+      enum: ['physical', 'creative', 'social', 'relaxation', 'mindfulness']
+    },
+    icon: String
+  }],
   userFeedback: {
     artRating: {
       type: Number,

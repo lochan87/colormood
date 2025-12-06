@@ -150,6 +150,85 @@ class GeminiService {
       throw new Error('Failed to generate music recommendations');
     }
   }
+
+  async generateAffirmations(moodData) {
+    try {
+      const prompt = `
+        Create 3 personalized affirmations for someone experiencing:
+        Primary Emotion: ${moodData.primaryEmotion}
+        Intensity: ${moodData.emotionIntensity}/10
+        Energy Level: ${moodData.energyLevel}
+        Secondary emotions: ${moodData.secondaryEmotions.join(', ')}
+        
+        Respond with a JSON object:
+        {
+          "affirmations": [
+            {
+              "text": "positive, empowering affirmation statement",
+              "tone": "calming|energizing|grounding|uplifting"
+            }
+          ],
+          "inspirationalQuote": {
+            "text": "relevant inspirational quote",
+            "author": "quote author or source"
+          }
+        }
+        
+        Make affirmations personal, present-tense, and emotionally validating.
+        Choose a quote that resonates with their current emotional state.
+        Only respond with the JSON object.
+      `;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const cleanedResponse = text.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Error generating affirmations:', error);
+      throw new Error('Failed to generate affirmations');
+    }
+  }
+
+  async generateSelfCareActivities(moodData) {
+    try {
+      const prompt = `
+        Suggest 5-6 self-care activities for someone experiencing:
+        Primary Emotion: ${moodData.primaryEmotion}
+        Intensity: ${moodData.emotionIntensity}/10
+        Energy Level: ${moodData.energyLevel}
+        Secondary emotions: ${moodData.secondaryEmotions.join(', ')}
+        
+        Respond with a JSON object:
+        {
+          "activities": [
+            {
+              "title": "activity name",
+              "description": "brief description",
+              "duration": "5 min|10 min|15 min|30 min",
+              "category": "physical|creative|social|relaxation|mindfulness",
+              "icon": "walk|tea|music|book|chat|stretch|write|breathe"
+            }
+          ]
+        }
+        
+        Suggest practical, accessible activities appropriate for their energy level.
+        Mix quick activities with longer ones. Be specific and actionable.
+        Only respond with the JSON object.
+      `;
+
+      const result = await this.model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      
+      const cleanedResponse = text.replace(/```json\n?|\n?```/g, '').trim();
+      return JSON.parse(cleanedResponse);
+    } catch (error) {
+      console.error('Error generating self-care activities:', error);
+      throw new Error('Failed to generate self-care activities');
+    }
+  }
 }
 
 module.exports = new GeminiService();

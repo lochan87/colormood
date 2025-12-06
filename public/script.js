@@ -140,7 +140,9 @@ class ColorMoodApp {
             // Generate content in parallel
             await Promise.all([
                 this.generateArt(moodResponse.moodEntry.id),
-                this.generateMusicAndPrompts(moodResponse.moodEntry.id)
+                this.generateMusicAndPrompts(moodResponse.moodEntry.id),
+                this.generateAffirmations(moodResponse.moodEntry.id),
+                this.generateSelfCare(moodResponse.moodEntry.id)
             ]);
 
             this.showToast('Your personalized content is ready!', 'success');
@@ -222,6 +224,12 @@ class ColorMoodApp {
         const artDescription = document.getElementById('artDescription');
         
         artContainer.innerHTML = art.svg;
+        
+        // Add click event to open fullscreen
+        artContainer.addEventListener('click', () => {
+            this.openArtModal(art);
+        });
+        
         artDescription.innerHTML = `
             <h4>Art Interpretation</h4>
             <p>${art.description}</p>
@@ -230,6 +238,9 @@ class ColorMoodApp {
                 <strong>Colors:</strong> ${art.colorPalette.length} unique colors
             </div>
         `;
+        
+        // Store current art for modal
+        this.currentArt = art;
     }
 
     async regenerateArt() {
@@ -358,6 +369,105 @@ class ColorMoodApp {
         `).join('');
     }
 
+    // === AFFIRMATIONS & QUOTES ===
+    async generateAffirmations(moodEntryId) {
+        try {
+            const response = await this.apiRequest('/api/wellness/affirmations', 'POST', {
+                moodEntryId,
+                sessionId: this.sessionId
+            });
+
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to generate affirmations');
+            }
+
+            this.displayAffirmations(response.affirmations, response.quote);
+            
+        } catch (error) {
+            console.error('Error generating affirmations:', error);
+            this.showToast('Failed to generate affirmations: ' + error.message, 'error');
+        }
+    }
+
+    displayAffirmations(affirmations, quote) {
+        const affirmationsContent = document.getElementById('affirmationsContent');
+        const quoteContent = document.getElementById('quoteContent');
+        
+        if (!affirmations || affirmations.length === 0) {
+            affirmationsContent.innerHTML = '<p class="text-muted">No affirmations available.</p>';
+        } else {
+            affirmationsContent.innerHTML = affirmations.map(affirmation => `
+                <div class="affirmation-item">
+                    ${this.escapeHtml(affirmation.text)}
+                    <span class="affirmation-tone">${this.capitalizeFirst(affirmation.tone)}</span>
+                </div>
+            `).join('');
+        }
+
+        if (quote && quote.text) {
+            quoteContent.innerHTML = `
+                <div class="quote-text">"${this.escapeHtml(quote.text)}"</div>
+                <div class="quote-author">— ${this.escapeHtml(quote.author)}</div>
+            `;
+        } else {
+            quoteContent.innerHTML = '';
+        }
+    }
+
+    // === SELF-CARE TOOLKIT ===
+    async generateSelfCare(moodEntryId) {
+        try {
+            const response = await this.apiRequest('/api/wellness/self-care', 'POST', {
+                moodEntryId,
+                sessionId: this.sessionId
+            });
+
+            if (!response.success) {
+                throw new Error(response.error || 'Failed to generate self-care activities');
+            }
+
+            this.displaySelfCareActivities(response.activities);
+            
+        } catch (error) {
+            console.error('Error generating self-care:', error);
+            this.showToast('Failed to generate self-care activities: ' + error.message, 'error');
+        }
+    }
+
+    displaySelfCareActivities(activities) {
+        const selfCareContent = document.getElementById('selfCareContent');
+        
+        if (!activities || activities.length === 0) {
+            selfCareContent.innerHTML = '<p class="text-muted">No self-care activities available.</p>';
+            return;
+        }
+
+        const iconMap = {
+            walk: 'fa-walking',
+            tea: 'fa-mug-hot',
+            music: 'fa-music',
+            book: 'fa-book',
+            chat: 'fa-comments',
+            stretch: 'fa-person-running',
+            write: 'fa-pen',
+            breathe: 'fa-wind'
+        };
+
+        selfCareContent.innerHTML = activities.map(activity => `
+            <div class="selfcare-activity">
+                <div class="activity-header">
+                    <div class="activity-icon">
+                        <i class="fas ${iconMap[activity.icon] || 'fa-heart'}"></i>
+                    </div>
+                    <div class="activity-title">${this.escapeHtml(activity.title)}</div>
+                    <span class="activity-duration">${this.escapeHtml(activity.duration)}</span>
+                </div>
+                <p class="activity-description">${this.escapeHtml(activity.description)}</p>
+                <span class="activity-category">${this.escapeHtml(activity.category)}</span>
+            </div>
+        `).join('');
+    }
+
     playPreview(previewUrl) {
         // Stop any currently playing audio
         if (this.currentAudio) {
@@ -475,8 +585,8 @@ class ColorMoodApp {
         }
 
         galleryGrid.innerHTML = artPieces.map(piece => `
-            <div class="gallery-item" data-id="${piece.id}">
-                <div class="gallery-artwork">
+            <div class="gallery-item" data-id="${piece.id}" data-art='${JSON.stringify(piece).replace(/'/g, "&apos;")}'>
+                <div class="gallery-artwork gallery-art-item">
                     ${piece.thumbnail}
                 </div>
                 <div class="gallery-info">
@@ -497,6 +607,23 @@ class ColorMoodApp {
                 </div>
             </div>
         `).join('');
+        
+        // Add click handlers to gallery items
+        document.querySelectorAll('.gallery-art-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const galleryItem = e.target.closest('.gallery-item');
+                if (galleryItem) {
+                    const artData = JSON.parse(galleryItem.dataset.art.replace(/&apos;/g, "'"));
+                    const art = {
+                        svg: artData.thumbnail,
+                        style: artData.style || 'Abstract',
+                        description: artData.description || 'A unique mood-based artwork',
+                        colorPalette: artData.colorPalette || []
+                    };
+                    this.openArtModal(art);
+                }
+            });
+        });
 
         this.displayPagination(pagination, 'galleryPagination', (page) => this.loadGallery(page));
     }
@@ -774,6 +901,101 @@ class ColorMoodApp {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // === ART MODAL (FULLSCREEN) ===
+    openArtModal(art) {
+        const modal = document.getElementById('artModal');
+        const modalArtContent = document.getElementById('modalArtContent');
+        const modalArtInfo = document.getElementById('modalArtInfo');
+        
+        // Set modal content
+        modalArtContent.innerHTML = art.svg;
+        modalArtInfo.innerHTML = `
+            <h3>${this.capitalizeFirst(art.style)} Art</h3>
+            <p>${art.description}</p>
+        `;
+        
+        // Show modal
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
+        // Store current art for download
+        this.currentModalArt = art;
+        
+        // Close on ESC key
+        this.escKeyHandler = (e) => {
+            if (e.key === 'Escape') {
+                this.closeArtModal();
+            }
+        };
+        document.addEventListener('keydown', this.escKeyHandler);
+        
+        // Close on background click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeArtModal();
+            }
+        });
+    }
+
+    closeArtModal() {
+        const modal = document.getElementById('artModal');
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+        
+        // Remove ESC key handler
+        if (this.escKeyHandler) {
+            document.removeEventListener('keydown', this.escKeyHandler);
+            this.escKeyHandler = null;
+        }
+    }
+
+    downloadModalArt() {
+        if (!this.currentModalArt) {
+            this.showToast('No art to download', 'warning');
+            return;
+        }
+        
+        try {
+            const svg = document.querySelector('#modalArtContent svg');
+            if (!svg) {
+                throw new Error('Art not found');
+            }
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const svgUrl = URL.createObjectURL(svgBlob);
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `colormood-art-${Date.now()}.png`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    this.showToast('Art downloaded successfully!', 'success');
+                });
+
+                URL.revokeObjectURL(svgUrl);
+            };
+
+            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        } catch (error) {
+            console.error('Error downloading art:', error);
+            this.showToast('Failed to download art', 'error');
+        }
     }
 }
 

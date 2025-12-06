@@ -26,10 +26,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/colormood
 const moodRoutes = require('./routes/mood');
 const artRoutes = require('./routes/art');
 const musicRoutes = require('./routes/music');
+const wellnessRoutes = require('./routes/wellness');
 
 app.use('/api/mood', moodRoutes);
 app.use('/api/art', artRoutes);
 app.use('/api/music', musicRoutes);
+app.use('/api/wellness', wellnessRoutes);
 
 // Serve main page
 app.get('/', (req, res) => {
