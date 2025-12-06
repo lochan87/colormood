@@ -1,10 +1,23 @@
 // === GLOBAL STATE ===
 class ColorMoodApp {
     constructor() {
-        this.sessionId = this.generateSessionId();
+        this.sessionId = this.getOrCreateSessionId();
         this.currentMoodEntry = null;
         this.currentGeneratedContent = null;
         this.init();
+    }
+
+    getOrCreateSessionId() {
+        // Check if sessionId exists in localStorage
+        let sessionId = localStorage.getItem('colorMoodSessionId');
+        
+        if (!sessionId) {
+            // Generate new sessionId if it doesn't exist
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('colorMoodSessionId', sessionId);
+        }
+        
+        return sessionId;
     }
 
     generateSessionId() {
@@ -512,11 +525,18 @@ class ColorMoodApp {
         if (!this.currentGeneratedContent) return;
 
         try {
-            const endpoint = type === 'art' ? 
-                `/api/art/${this.currentGeneratedContent.id}/rate` :
-                type === 'music' ? 
-                `/api/music/${this.currentGeneratedContent.id}/rate-music` :
-                `/api/music/${this.currentGeneratedContent.id}/rate-prompts`;
+            let endpoint;
+            if (type === 'art') {
+                endpoint = `/api/art/${this.currentGeneratedContent.id}/rate`;
+            } else if (type === 'music') {
+                endpoint = `/api/music/${this.currentGeneratedContent.id}/rate-music`;
+            } else if (type === 'prompts') {
+                endpoint = `/api/music/${this.currentGeneratedContent.id}/rate-prompts`;
+            } else if (type === 'affirmations') {
+                endpoint = `/api/wellness/${this.currentGeneratedContent.id}/rate-affirmations`;
+            } else if (type === 'selfcare') {
+                endpoint = `/api/wellness/${this.currentGeneratedContent.id}/rate-selfcare`;
+            }
 
             await this.apiRequest(endpoint, 'POST', {
                 sessionId: this.sessionId,
@@ -615,6 +635,10 @@ class ColorMoodApp {
     async loadStats() {
         try {
             const response = await this.apiRequest(`/api/mood/stats/${this.sessionId}`);
+            
+            console.log('Stats Response:', response);
+            console.log('Total Entries:', response.stats?.totalEntries);
+            console.log('Session ID:', this.sessionId);
             
             if (!response.success) {
                 throw new Error(response.error || 'Failed to load statistics');

@@ -129,6 +129,82 @@ router.post('/self-care', async (req, res) => {
   }
 });
 
+// Rate affirmations
+router.post('/:contentId/rate-affirmations', async (req, res) => {
+  try {
+    const { contentId } = req.params;
+    const { sessionId, rating } = req.body;
+
+    if (!sessionId || !rating) {
+      return res.status(400).json({ error: 'Session ID and rating are required' });
+    }
+
+    const generatedContent = await GeneratedContent.findOne({
+      _id: contentId,
+      sessionId
+    });
+
+    if (!generatedContent) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    generatedContent.userFeedback = generatedContent.userFeedback || {};
+    generatedContent.userFeedback.affirmationsRating = rating;
+    await generatedContent.save({ validateModifiedOnly: true });
+
+    res.json({
+      success: true,
+      message: 'Affirmations rating saved successfully',
+      rating
+    });
+
+  } catch (error) {
+    console.error('Error saving affirmations rating:', error);
+    res.status(500).json({ 
+      error: 'Failed to save rating',
+      message: error.message 
+    });
+  }
+});
+
+// Rate self-care activities
+router.post('/:contentId/rate-selfcare', async (req, res) => {
+  try {
+    const { contentId } = req.params;
+    const { sessionId, rating } = req.body;
+
+    if (!sessionId || !rating) {
+      return res.status(400).json({ error: 'Session ID and rating are required' });
+    }
+
+    const generatedContent = await GeneratedContent.findOne({
+      _id: contentId,
+      sessionId
+    });
+
+    if (!generatedContent) {
+      return res.status(404).json({ error: 'Content not found' });
+    }
+
+    generatedContent.userFeedback = generatedContent.userFeedback || {};
+    generatedContent.userFeedback.selfCareRating = rating;
+    await generatedContent.save({ validateModifiedOnly: true });
+
+    res.json({
+      success: true,
+      message: 'Self-care rating saved successfully',
+      rating
+    });
+
+  } catch (error) {
+    console.error('Error saving self-care rating:', error);
+    res.status(500).json({ 
+      error: 'Failed to save rating',
+      message: error.message 
+    });
+  }
+});
+
 // Get all wellness content for a mood entry
 router.get('/:moodEntryId', async (req, res) => {
   try {
