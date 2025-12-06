@@ -153,12 +153,16 @@ class GeminiService {
 
   async generateAffirmations(moodData) {
     try {
+      const secondaryEmotions = moodData.secondaryEmotions && moodData.secondaryEmotions.length > 0 
+        ? moodData.secondaryEmotions.join(', ') 
+        : 'none';
+
       const prompt = `
         Create 3 personalized affirmations for someone experiencing:
         Primary Emotion: ${moodData.primaryEmotion}
         Intensity: ${moodData.emotionIntensity}/10
         Energy Level: ${moodData.energyLevel}
-        Secondary emotions: ${moodData.secondaryEmotions.join(', ')}
+        Secondary emotions: ${secondaryEmotions}
         
         Respond with a JSON object:
         {
@@ -187,18 +191,23 @@ class GeminiService {
       return JSON.parse(cleanedResponse);
     } catch (error) {
       console.error('Error generating affirmations:', error);
-      throw new Error('Failed to generate affirmations');
+      console.error('Mood data:', moodData);
+      throw new Error('Failed to generate affirmations: ' + error.message);
     }
   }
 
   async generateSelfCareActivities(moodData) {
     try {
+      const secondaryEmotions = moodData.secondaryEmotions && moodData.secondaryEmotions.length > 0 
+        ? moodData.secondaryEmotions.join(', ') 
+        : 'none';
+
       const prompt = `
         Suggest 5-6 self-care activities for someone experiencing:
         Primary Emotion: ${moodData.primaryEmotion}
         Intensity: ${moodData.emotionIntensity}/10
         Energy Level: ${moodData.energyLevel}
-        Secondary emotions: ${moodData.secondaryEmotions.join(', ')}
+        Secondary emotions: ${secondaryEmotions}
         
         Respond with a JSON object:
         {
@@ -226,7 +235,8 @@ class GeminiService {
       return JSON.parse(cleanedResponse);
     } catch (error) {
       console.error('Error generating self-care activities:', error);
-      throw new Error('Failed to generate self-care activities');
+      console.error('Mood data:', moodData);
+      throw new Error('Failed to generate self-care activities: ' + error.message);
     }
   }
 }

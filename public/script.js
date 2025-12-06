@@ -582,22 +582,52 @@ class ColorMoodApp {
 
     displayGallery(artPieces, pagination) {
         const galleryGrid = document.getElementById('galleryGrid');
+        const galleryHeader = document.getElementById('galleryHeader');
         
         if (!artPieces || artPieces.length === 0) {
+            galleryHeader.style.display = 'none';
             galleryGrid.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-images fa-3x" style="color: var(--gray-300); margin-bottom: var(--spacing-md);"></i>
-                    <h3>No Art Yet</h3>
-                    <p>Start by describing your mood to create your first piece of art!</p>
-                    <button class="btn btn-primary" onclick="app.switchTab('home')">
-                        <i class="fas fa-plus"></i>
-                        Create Your First Art
+                    <div class="empty-state-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h2 class="empty-state-title">Your Personal Art Gallery Awaits</h2>
+                    <p class="empty-state-description">Transform your emotions into beautiful AI-generated artwork. Each mood entry creates a unique piece that captures your emotional state.</p>
+                    
+                    <div class="empty-state-features">
+                        <div class="empty-state-feature">
+                            <i class="fas fa-paint-brush"></i>
+                            <span>Unique Artworks</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <i class="fas fa-palette"></i>
+                            <span>Custom Palettes</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <span style="font-size: 2rem;">🤖</span>
+                            <span>AI-Generated</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <i class="fas fa-heart"></i>
+                            <span>Emotion-Based</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg" onclick="app.switchTab('home')">
+                        <i class="fas fa-magic"></i>
+                        Create Your First Artwork
                     </button>
+                    
+                    <p class="empty-state-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Tip: Every mood you track generates a one-of-a-kind abstract art piece
+                    </p>
                 </div>
             `;
             return;
         }
 
+        galleryHeader.style.display = 'block';
         galleryGrid.innerHTML = artPieces.map(piece => `
             <div class="gallery-item" data-id="${piece.id}" data-art='${JSON.stringify(piece).replace(/'/g, "&apos;")}'>
                 <div class="gallery-artwork gallery-art-item">
@@ -648,22 +678,52 @@ class ColorMoodApp {
 
     displayStats(stats) {
         const statsContent = document.getElementById('statsContent');
+        const statsHeader = document.getElementById('statsHeader');
         
         if (!stats || stats.totalEntries === 0) {
+            statsHeader.style.display = 'none';
             statsContent.innerHTML = `
                 <div class="empty-state">
-                    <i class="fas fa-chart-line fa-3x" style="color: var(--gray-300); margin-bottom: var(--spacing-md);"></i>
-                    <h3>No Data Yet</h3>
-                    <p>Track your emotional journey by describing your moods regularly.</p>
-                    <button class="btn btn-primary" onclick="app.switchTab('home')">
-                        <i class="fas fa-plus"></i>
-                        Start Tracking
+                    <div class="empty-state-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h2 class="empty-state-title">Begin Your Emotional Wellness Journey</h2>
+                    <p class="empty-state-description">Start tracking your moods to unlock powerful insights about your emotional patterns, energy levels, and overall wellness.</p>
+                    
+                    <div class="empty-state-features">
+                        <div class="empty-state-feature">
+                            <i class="fas fa-brain"></i>
+                            <span>AI-Powered Insights</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Visual Analytics</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <i class="fas fa-heart-pulse"></i>
+                            <span>Wellness Scoring</span>
+                        </div>
+                        <div class="empty-state-feature">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Mood Trends</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-primary btn-lg" onclick="app.switchTab('home')">
+                        <i class="fas fa-play-circle"></i>
+                        Start Your First Entry
                     </button>
+                    
+                    <p class="empty-state-hint">
+                        <i class="fas fa-lightbulb"></i>
+                        Tip: Regular mood tracking helps you understand patterns and improve emotional well-being
+                    </p>
                 </div>
             `;
             return;
         }
 
+        statsHeader.style.display = 'block';
         statsContent.innerHTML = `
             <div class="stats-grid">
                 <div class="stat-card">

@@ -30,7 +30,7 @@ router.post('/affirmations', async (req, res) => {
       primaryEmotion: moodEntry.primaryEmotion,
       emotionIntensity: moodEntry.emotionIntensity,
       energyLevel: moodEntry.energyLevel,
-      secondaryEmotions: moodEntry.secondaryEmotions
+      secondaryEmotions: moodEntry.secondaryEmotions || []
     });
 
     // Save or update generated content
@@ -61,9 +61,11 @@ router.post('/affirmations', async (req, res) => {
 
   } catch (error) {
     console.error('Error generating affirmations:', error);
+    console.error('Error details:', error.message, error.stack);
     res.status(500).json({ 
       error: 'Failed to generate affirmations',
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
@@ -94,7 +96,7 @@ router.post('/self-care', async (req, res) => {
       primaryEmotion: moodEntry.primaryEmotion,
       emotionIntensity: moodEntry.emotionIntensity,
       energyLevel: moodEntry.energyLevel,
-      secondaryEmotions: moodEntry.secondaryEmotions
+      secondaryEmotions: moodEntry.secondaryEmotions || []
     });
 
     // Save or update generated content
@@ -122,9 +124,11 @@ router.post('/self-care', async (req, res) => {
 
   } catch (error) {
     console.error('Error generating self-care activities:', error);
+    console.error('Error details:', error.message, error.stack);
     res.status(500).json({ 
       error: 'Failed to generate self-care activities',
-      message: error.message 
+      message: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 });
